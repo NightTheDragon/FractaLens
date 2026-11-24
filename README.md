@@ -56,65 +56,77 @@ The coverage report is generated in `build/reports/jacoco/test/html/index.html`.
 The library is split into six packages.
 Each package is built around one or two design patterns, summarized below.
 
-```plantuml
-@startuml
-hide empty members
-set separator none
-skinparam packageStyle rectangle
-
-package "complex  [Decorator]" #E0F7FA {
-    interface IComplex
+```mermaid
+classDiagram
+direction LR
+namespace complex {
+    class IComplex {
+        <<interface>>
+    }
     class Complex
-    interface IComplexPlane
-    abstract class ComplexPlaneDecorator
-    IComplex <|.. Complex
-    IComplexPlane <|.. ComplexPlaneDecorator
+    class IComplexPlane {
+        <<interface>>
+    }
+    class ComplexPlaneDecorator {
+        <<abstract>>
+    }
 }
-
-package "complex.sequence  [Template Method + Iterator + Strategy]" #E3F2FD {
-    interface IComplexSequence
+namespace complex_sequence {
+    class IComplexSequence {
+        <<interface>>
+    }
     class ComplexSequenceIterator
     class ComplexSequenceLambda
-    enum AllSequences
-    IComplexSequence <|.. ComplexSequenceLambda
+    class AllSequences {
+        <<enumeration>>
+    }
 }
-
-package "palette  [Strategy + Decorator]" #FCE4EC {
-    interface IPalette
-    abstract class PaletteDecorator
-    enum AllPalettes
-    IPalette <|.. PaletteDecorator
+namespace palette {
+    class IPalette {
+        <<interface>>
+    }
+    class PaletteDecorator {
+        <<abstract>>
+    }
+    class AllPalettes {
+        <<enumeration>>
+    }
 }
-
-package "image  [Adapter]" #FFFDE7 {
-    interface IFractalImage
+namespace image {
+    class IFractalImage {
+        <<interface>>
+    }
     class BufferedImageAdapter
-    IFractalImage <|.. BufferedImageAdapter
 }
-
-package "generator  [Strategy + Builder + Composite]" #FFF3E0 {
-    interface IFractalGenerator
+namespace generator {
+    class IFractalGenerator {
+        <<interface>>
+    }
     class FractalGenerator
     class FractalGeneratorAnimated
     class FractalGeneratorBuilder
-    IFractalGenerator <|.. FractalGenerator
-    IFractalGenerator <|.. FractalGeneratorAnimated
 }
-
-package "commandLine  [Builder]" #E8F5E9 {
+namespace commandLine {
     class FractalCommand
 }
-
-FractalCommand ..> FractalGeneratorBuilder : <<uses>>
-FractalCommand ..> FractalGeneratorAnimated : <<creates>>
-FractalGeneratorBuilder ..> FractalGenerator : <<creates>>
-FractalGenerator o--> IComplexPlane
-FractalGenerator o--> IPalette
-FractalGenerator o--> IFractalImage
-FractalGenerator ..> IComplexSequence : <<uses>>
-IComplexSequence ..> IComplex : <<generates>>
-@enduml
+IComplex <|.. Complex
+IComplexPlane <|.. ComplexPlaneDecorator
+IComplexSequence <|.. ComplexSequenceLambda
+IPalette <|.. PaletteDecorator
+IFractalImage <|.. BufferedImageAdapter
+IFractalGenerator <|.. FractalGenerator
+IFractalGenerator <|.. FractalGeneratorAnimated
+FractalCommand ..> FractalGeneratorBuilder : uses
+FractalCommand ..> FractalGeneratorAnimated : creates
+FractalGeneratorBuilder ..> FractalGenerator : creates
+FractalGenerator o-- IComplexPlane
+FractalGenerator o-- IPalette
+FractalGenerator o-- IFractalImage
+FractalGenerator ..> IComplexSequence : uses
+IComplexSequence ..> IComplex : generates
 ```
+
+Packages and their patterns: `complex` (Decorator), `complex.sequence` (Template Method + Iterator + Strategy), `palette` (Strategy + Decorator), `image` (Adapter), `generator` (Strategy + Builder + Composite), `commandLine` (Builder).
 
 ### Complex numbers and complex plane
 
@@ -129,66 +141,59 @@ it decorates, delegates `asComplex()` to it and transforms the result.
 Adding a new transformation (e.g. a rotation of the plane) only requires a new
 decorator, without modifying the existing classes.
 
-```plantuml
-@startuml
-hide empty members
-
-interface IComplex {
-    + {abstract} getRealPart() : double
-    + {abstract} getImaginaryPart() : double
-    + {abstract} abs() : double
-    + {abstract} negate() : IComplex
-    + {abstract} conjugate() : IComplex
-    + {abstract} add(other : IComplex) : IComplex
-    + {abstract} subtract(other : IComplex) : IComplex
-    + {abstract} multiply(value : double) : IComplex
-    + {abstract} multiply(other : IComplex) : IComplex
-    + {abstract} divide(other : IComplex) : IComplex
-    + {abstract} power(power : int) : IComplex
+```mermaid
+classDiagram
+class IComplex {
+    <<interface>>
+    +getRealPart() double
+    +getImaginaryPart() double
+    +abs() double
+    +negate() IComplex
+    +conjugate() IComplex
+    +add(IComplex other) IComplex
+    +subtract(IComplex other) IComplex
+    +multiply(double value) IComplex
+    +multiply(IComplex other) IComplex
+    +divide(IComplex other) IComplex
+    +power(int power) IComplex
 }
-
 class Complex {
-    - realPart : double
-    - imaginaryPart : double
-    + Complex(realPart : double, imaginaryPart : double)
+    -double realPart
+    -double imaginaryPart
+    +Complex(double realPart, double imaginaryPart)
 }
-
-interface IComplexPlane {
-    + {abstract} asComplex(row : int, column : int) : IComplex
+class IComplexPlane {
+    <<interface>>
+    +asComplex(int row, int column) IComplex
 }
-
 class ComplexPlane {
-    - width : int
-    - height : int
-    + ComplexPlane(height : int, width : int)
-    + asComplex(row : int, column : int) : IComplex
+    -int width
+    -int height
+    +ComplexPlane(int height, int width)
+    +asComplex(int row, int column) IComplex
 }
-
-abstract class ComplexPlaneDecorator {
-    + ComplexPlaneDecorator(complexPlane : IComplexPlane)
-    + asComplex(row : int, column : int) : IComplex
+class ComplexPlaneDecorator {
+    <<abstract>>
+    +ComplexPlaneDecorator(IComplexPlane complexPlane)
+    +asComplex(int row, int column) IComplex
 }
-
 class ComplexPlaneZoom {
-    - valeurZoom : double
-    + ComplexPlaneZoom(valeurZoom : double, complexPlane : IComplexPlane)
-    + asComplex(row : int, column : int) : IComplex
+    -double valeurZoom
+    +ComplexPlaneZoom(double valeurZoom, IComplexPlane complexPlane)
+    +asComplex(int row, int column) IComplex
 }
-
 class ComplexPlaneTranslate {
-    - valTranslate : IComplex
-    + ComplexPlaneTranslate(valTranslate : IComplex, complexPlane : IComplexPlane)
-    + asComplex(row : int, column : int) : IComplex
+    -IComplex valTranslate
+    +ComplexPlaneTranslate(IComplex valTranslate, IComplexPlane complexPlane)
+    +asComplex(int row, int column) IComplex
 }
-
 IComplex <|.. Complex
 IComplexPlane <|.. ComplexPlane
 IComplexPlane <|.. ComplexPlaneDecorator
-ComplexPlaneDecorator o--> "1" IComplexPlane : complexPlane
+ComplexPlaneDecorator o-- "1" IComplexPlane : complexPlane
 ComplexPlaneDecorator <|-- ComplexPlaneZoom
 ComplexPlaneDecorator <|-- ComplexPlaneTranslate
-IComplexPlane ..> IComplex : <<creates>>
-@enduml
+IComplexPlane ..> IComplex : creates
 ```
 
 ### Complex sequences
@@ -232,45 +237,42 @@ which constants give a bounded sequence.
 of a rotation animation: the constant `c` of Julia's sequence is multiplied by
 `e^(iθ)`, with `θ` going through a full turn.
 
-```plantuml
-@startuml
-hide empty members
-
-interface "Iterable<IComplex>" as Iterable
-interface "Iterator<IComplex>" as Iterator
-
-interface IComplexSequence {
-    + {abstract} computeNext(previous : IComplex) : IComplex
+```mermaid
+classDiagram
+class Iterable~IComplex~ {
+    <<interface>>
 }
-
+class Iterator~IComplex~ {
+    <<interface>>
+}
+class IComplexSequence {
+    <<interface>>
+    +computeNext(IComplex previous) IComplex
+}
 class ComplexSequenceIterator {
-    - actual : IComplex
-    - maxIterations : int
-    - count : int
-    + ComplexSequenceIterator(sequence : IComplexSequence, actual : IComplex, maxIterations : int)
-    + hasNext() : boolean
-    + next() : IComplex
+    -IComplex actual
+    -int maxIterations
+    -int count
+    +ComplexSequenceIterator(IComplexSequence sequence, IComplex actual, int maxIterations)
+    +hasNext() boolean
+    +next() IComplex
 }
-
 class ComplexSequenceLambda {
-    - function : BinaryOperator<IComplex>
-    - z0 : IComplex
-    - nbTerms : int
-    + computeNext(previous : IComplex) : IComplex
-    + iterator() : Iterator<IComplex>
+    -BinaryOperator~IComplex~ function
+    -IComplex z0
+    -int nbTerms
+    +computeNext(IComplex previous) IComplex
+    +iterator() Iterator~IComplex~
 }
-
 class JuliaRotation {
-    + {static} rotate(c : IComplex, theta : double) : IComplex
-    + {static} angles(step : double) : List<Double>
-    + {static} factories(c : IComplex, step : double) : List<BiFunction<IComplex, Integer, IComplexSequence>>
+    +rotate(IComplex c, double theta) IComplex$
+    +angles(double step) List~Double~$
+    +factories(IComplex c, double step) List~BiFunction~IComplex,Integer,IComplexSequence~~$
 }
-
 class JuliaRotationGeneralized {
-    + {static} isSupported(sequence : AllSequences) : boolean
-    + {static} factories(sequence : AllSequences, c : IComplex, step : double) : List<BiFunction<IComplex, Integer, IComplexSequence>>
+    +isSupported(AllSequences sequence) boolean$
+    +factories(AllSequences sequence, IComplex c, double step) List~BiFunction~IComplex,Integer,IComplexSequence~~$
 }
-
 class ComplexSequenceJulia
 class ComplexSequenceGeneralJulia
 class ComplexSequenceMandelbrot
@@ -279,8 +281,8 @@ class ComplexSequenceBurningShip
 class ComplexSequenceGeneralizedBurningShip
 class ComplexSequenceTricorn
 class ComplexSequenceTricornGeneralized
-
-enum AllSequences {
+class AllSequences {
+    <<enumeration>>
     JULIA
     JULIA_GENERALIZED
     MANDELBROT
@@ -289,13 +291,11 @@ enum AllSequences {
     BURNING_SHIP_GENERALIZED
     TRICORN
     TRICORN_GENERALIZED
-    + getSequenceFactory() : BiFunction<IComplex, Integer, IComplexSequence>
+    +getSequenceFactory() BiFunction~IComplex,Integer,IComplexSequence~
 }
-
 Iterable <|-- IComplexSequence
 Iterator <|.. ComplexSequenceIterator
-ComplexSequenceIterator o--> "1" IComplexSequence : sequence
-
+ComplexSequenceIterator o-- "1" IComplexSequence : sequence
 IComplexSequence <|.. ComplexSequenceLambda
 IComplexSequence <|.. ComplexSequenceJulia
 IComplexSequence <|.. ComplexSequenceGeneralJulia
@@ -305,16 +305,14 @@ IComplexSequence <|.. ComplexSequenceBurningShip
 IComplexSequence <|.. ComplexSequenceGeneralizedBurningShip
 IComplexSequence <|.. ComplexSequenceTricorn
 ComplexSequenceLambda <|-- ComplexSequenceTricornGeneralized
-
-IComplexSequence ..> ComplexSequenceIterator : <<creates>>
-AllSequences ..> ComplexSequenceLambda : <<creates>>
-AllSequences ..> ComplexSequenceBurningShip : <<creates>>
-AllSequences ..> ComplexSequenceGeneralizedBurningShip : <<creates>>
-JuliaRotation ..> ComplexSequenceJulia : <<creates>>
-JuliaRotationGeneralized ..> JuliaRotation : <<uses>>
-JuliaRotationGeneralized ..> ComplexSequenceGeneralJulia : <<creates>>
-JuliaRotationGeneralized ..> AllSequences : <<uses>>
-@enduml
+IComplexSequence ..> ComplexSequenceIterator : creates
+AllSequences ..> ComplexSequenceLambda : creates
+AllSequences ..> ComplexSequenceBurningShip : creates
+AllSequences ..> ComplexSequenceGeneralizedBurningShip : creates
+JuliaRotation ..> ComplexSequenceJulia : creates
+JuliaRotationGeneralized ..> JuliaRotation : uses
+JuliaRotationGeneralized ..> ComplexSequenceGeneralJulia : creates
+JuliaRotationGeneralized ..> AllSequences : uses
 ```
 
 ### Color palettes
@@ -335,46 +333,40 @@ The `AllPalettes` enumeration lists every combination
 *base palette × decorators* (42 constants), and creates the corresponding
 palette from the maximum number of iterations.
 
-```plantuml
-@startuml
-hide empty members
-
-interface IPalette {
-    + {abstract} getColor(nbIterations : int) : Color
+```mermaid
+classDiagram
+class IPalette {
+    <<interface>>
+    +getColor(int nbIterations) Color
 }
-
 class GreyscalePalette {
-    - maxIterations : int
-    + GreyscalePalette(maxIterations : int)
+    -int maxIterations
+    +GreyscalePalette(int maxIterations)
 }
-
 class DegradePalette {
-    - maxIterations : int
-    - startColor : Color
-    - endColor : Color
-    + DegradePalette(maxIterations : int, startColor : Color, endColor : Color)
+    -int maxIterations
+    -Color startColor
+    -Color endColor
+    +DegradePalette(int maxIterations, Color startColor, Color endColor)
 }
-
 class FixedPalette {
-    - colors : List<Color>
-    + FixedPalette(colors : List<Color>)
+    -List~Color~ colors
+    +FixedPalette(List~Color~ colors)
 }
-
-abstract class PaletteDecorator {
-    # wrapped : IPalette
-    + PaletteDecorator(wrapped : IPalette)
+class PaletteDecorator {
+    <<abstract>>
+    #IPalette wrapped
+    +PaletteDecorator(IPalette wrapped)
 }
-
 class InvertedPalette {
-    + InvertedPalette(wrapped : IPalette)
+    +InvertedPalette(IPalette wrapped)
 }
-
 class ColorMaskPalette {
-    - mask : Mask
-    + ColorMaskPalette(wrapped : IPalette, mask : Mask)
+    -Mask mask
+    +ColorMaskPalette(IPalette wrapped, Mask mask)
 }
-
-enum "ColorMaskPalette.Mask" as Mask {
+class Mask["ColorMaskPalette.Mask"] {
+    <<enumeration>>
     RED
     GREEN
     BLUE
@@ -382,27 +374,25 @@ enum "ColorMaskPalette.Mask" as Mask {
     CYAN
     MAGENTA
 }
-
-enum AllPalettes {
+class AllPalettes {
+    <<enumeration>>
     GREYSCALE
     GREYSCALE_INVERTED
     GREYSCALE_RED
     DEGRADE
     FIXED
-    ...
-    + getPalette(maxIterations : int) : IPalette
+    …
+    +getPalette(int maxIterations) IPalette
 }
-
 IPalette <|.. GreyscalePalette
 IPalette <|.. DegradePalette
 IPalette <|.. FixedPalette
 IPalette <|.. PaletteDecorator
-PaletteDecorator o--> "1" IPalette : wrapped
+PaletteDecorator o-- "1" IPalette : wrapped
 PaletteDecorator <|-- InvertedPalette
 PaletteDecorator <|-- ColorMaskPalette
 ColorMaskPalette --> Mask
-AllPalettes ..> IPalette : <<creates>>
-@enduml
+AllPalettes ..> IPalette : creates
 ```
 
 ### Images
@@ -413,28 +403,23 @@ Java standard library to this interface, so that the rest of the code does not
 depend on AWT. The output format (PNG by default) is deduced from the extension
 of the file.
 
-```plantuml
-@startuml
-hide empty members
-
-interface IFractalImage {
-    + {abstract} getHeight() : int
-    + {abstract} getWidth() : int
-    + {abstract} setColor(row : int, column : int, color : Color) : void
-    + {abstract} saveAs(path : String) : void
+```mermaid
+classDiagram
+class IFractalImage {
+    <<interface>>
+    +getHeight() int
+    +getWidth() int
+    +setColor(int row, int column, Color color) void
+    +saveAs(String path) void
 }
-
 class BufferedImageAdapter {
-    + BufferedImageAdapter(width : int, height : int)
-    + BufferedImageAdapter(image : BufferedImage)
-    + getImage() : BufferedImage
+    +BufferedImageAdapter(int width, int height)
+    +BufferedImageAdapter(BufferedImage image)
+    +getImage() BufferedImage
 }
-
 class BufferedImage
-
 IFractalImage <|.. BufferedImageAdapter
-BufferedImageAdapter *--> "1" BufferedImage : image
-@enduml
+BufferedImageAdapter *-- "1" BufferedImage : image
 ```
 
 ### Fractal generation and configuration
@@ -462,68 +447,69 @@ single image or an animation. Two kinds of animations are provided by the comman
 line: a *zoom* (the scale of each frame is a fraction of the previous one) and a
 *rotation* (the constant of Julia's sequence rotates from one frame to the next).
 
-```plantuml
-@startuml
-hide empty members
-
-interface IFractalGenerator {
-    + {abstract} generateImage() : IFractalImage
-    + {abstract} computePixelColor(row : int, column : int) : Color
-    + {abstract} saveImage() : void
+```mermaid
+classDiagram
+class IFractalGenerator {
+    <<interface>>
+    +generateImage() IFractalImage
+    +computePixelColor(int row, int column) Color
+    +saveImage() void
 }
-
 class FractalGenerator {
-    - outputPath : String
-    - nbTherm : int
-    ~ sequenceFunction : BiFunction<IComplex, Integer, IComplexSequence>
-    + FractalGenerator(image : IFractalImage, plane : IComplexPlane, palette : IPalette, outputPath : String, sequenceFunction : BiFunction<IComplex, Integer, IComplexSequence>, nbTherm : int)
-    + getConfiguration() : FractalGeneratorBuilder
+    -String outputPath
+    -int nbTherm
+    BiFunction~IComplex,Integer,IComplexSequence~ sequenceFunction
+    +FractalGenerator(IFractalImage image, IComplexPlane plane, IPalette palette, String outputPath, BiFunction~IComplex,Integer,IComplexSequence~ sequenceFunction, int nbTherm)
+    +getConfiguration() FractalGeneratorBuilder
 }
-
 class FractalGeneratorAnimated {
-    - outputPath : String
-    - frameDelay : int
-    + FractalGeneratorAnimated(outputPath : String, frameDelay : int)
-    + addFrame(generator : IFractalGenerator) : void
+    -String outputPath
+    -int frameDelay
+    +FractalGeneratorAnimated(String outputPath, int frameDelay)
+    +addFrame(IFractalGenerator generator) void
 }
-
 class FractalGeneratorBuilder {
-    - width : int = 800
-    - height : int = 800
-    - maxIterations : int = 250
-    - scale : double = 0.001
-    - center : IComplex
-    - outputPath : String = "fractal.png"
-    - FractalGeneratorBuilder()
-    + FractalGeneratorBuilder(generator : IFractalGenerator)
-    + {static} newInstance() : FractalGeneratorBuilder
-    + withSize(width : int, height : int) : FractalGeneratorBuilder
-    + withScale(scale : double) : FractalGeneratorBuilder
-    + withCenter(center : IComplex) : FractalGeneratorBuilder
-    + withMaxIterations(maxIterations : int) : FractalGeneratorBuilder
-    + withPalette(paletteType : AllPalettes) : FractalGeneratorBuilder
-    + withPalette(palette : IPalette) : FractalGeneratorBuilder
-    + withSequence(sequenceType : AllSequences) : FractalGeneratorBuilder
-    + withSequence(sequence : BiFunction<IComplex, Integer, IComplexSequence>) : FractalGeneratorBuilder
-    + withOutputPath(outputPath : String) : FractalGeneratorBuilder
-    + build() : IFractalGenerator
+    -int width = 800
+    -int height = 800
+    -int maxIterations = 250
+    -double scale = 0.001
+    -IComplex center
+    -String outputPath = fractal.png
+    -FractalGeneratorBuilder()
+    +FractalGeneratorBuilder(IFractalGenerator generator)
+    +newInstance() FractalGeneratorBuilder$
+    +withSize(int width, int height) FractalGeneratorBuilder
+    +withScale(double scale) FractalGeneratorBuilder
+    +withCenter(IComplex center) FractalGeneratorBuilder
+    +withMaxIterations(int maxIterations) FractalGeneratorBuilder
+    +withPalette(AllPalettes paletteType) FractalGeneratorBuilder
+    +withPalette(IPalette palette) FractalGeneratorBuilder
+    +withSequence(AllSequences sequenceType) FractalGeneratorBuilder
+    +withSequence(BiFunction~IComplex,Integer,IComplexSequence~ sequence) FractalGeneratorBuilder
+    +withOutputPath(String outputPath) FractalGeneratorBuilder
+    +build() IFractalGenerator
 }
-
-interface IFractalImage
-interface IComplexPlane
-interface IPalette
-interface IComplexSequence
-
+class IFractalImage {
+    <<interface>>
+}
+class IComplexPlane {
+    <<interface>>
+}
+class IPalette {
+    <<interface>>
+}
+class IComplexSequence {
+    <<interface>>
+}
 IFractalGenerator <|.. FractalGenerator
 IFractalGenerator <|.. FractalGeneratorAnimated
-FractalGeneratorAnimated o--> "*" IFractalGenerator : frames
-FractalGenerator o--> "1" IFractalImage : image
-FractalGenerator o--> "1" IComplexPlane : plane
-FractalGenerator o--> "1" IPalette : palette
-FractalGenerator ..> IComplexSequence : <<uses>>
-FractalGeneratorBuilder ..> FractalGenerator : <<creates>>
+FractalGeneratorAnimated o-- "*" IFractalGenerator : frames
+FractalGenerator o-- "1" IFractalImage : image
+FractalGenerator o-- "1" IComplexPlane : plane
+FractalGenerator o-- "1" IPalette : palette
+FractalGenerator ..> IComplexSequence : uses
+FractalGeneratorBuilder ..> FractalGenerator : creates
 FractalGeneratorBuilder --> IPalette : paletteFactory
-@enduml
 ```
 
 ### Command line
@@ -536,45 +522,46 @@ from the same builder (`ZOOM` and `ROTATION`). Invalid parameters (e.g., a
 rotation of a sequence that is not Julia's) are reported to the user with a usage
 error instead of a stack trace.
 
-```plantuml
-@startuml
-hide empty members
-
+```mermaid
+classDiagram
 class FractalCommand {
-    - fractalName : AllSequences
-    - nbIterations : int
-    - width : int
-    - height : int
-    - scale : double
-    - focusX : double
-    - focusY : double
-    - paletteName : AllPalettes
-    - type : ImageType
-    - imageCount : int
-    - output : String
-    + run() : void
+    -AllSequences fractalName
+    -int nbIterations
+    -int width
+    -int height
+    -double scale
+    -double focusX
+    -double focusY
+    -AllPalettes paletteName
+    -ImageType type
+    -int imageCount
+    -String output
+    +run() void
 }
-
-enum ImageType {
+class ImageType {
+    <<enumeration>>
     SINGLE
     ZOOM
     ROTATION
 }
-
 class FractalGeneratorBuilder
 class FractalGeneratorAnimated
-interface IFractalGenerator
-enum AllSequences
-enum AllPalettes
-
+class IFractalGenerator {
+    <<interface>>
+}
+class AllSequences {
+    <<enumeration>>
+}
+class AllPalettes {
+    <<enumeration>>
+}
 FractalCommand ..|> Runnable
 FractalCommand --> ImageType
 FractalCommand --> AllSequences
 FractalCommand --> AllPalettes
-FractalCommand ..> FractalGeneratorBuilder : <<uses>>
-FractalCommand ..> FractalGeneratorAnimated : <<creates>>
-FractalCommand ..> IFractalGenerator : <<runs>>
-@enduml
+FractalCommand ..> FractalGeneratorBuilder : uses
+FractalCommand ..> FractalGeneratorAnimated : creates
+FractalCommand ..> IFractalGenerator : runs
 ```
 
 ## Feature list
